@@ -19,21 +19,20 @@ int main() {
 	listen(MainSocket, SOMAXCONN);
 	printf("Start\n");
 
+	struct sockaddr_in SockAddrClient;
+	socklen_t addrlen = sizeof(struct sockaddr_in);
+	int SlaveSocket = accept(MainSocket, (struct sockaddr*)(&SockAddrClient), &addrlen);
+
 	while (1) {
-		struct sockaddr_in SockAddrClient;
-		socklen_t addrlen = sizeof(struct sockaddr_in);
-		int SlaveSocket = accept(MainSocket, (struct sockaddr*)(&SockAddrClient), &addrlen);
-		
 		printf("new_ip=%u\n", SockAddrClient.sin_addr.s_addr);
 		char buffer[512];
 
-		recv(SlaveSocket, buffer, 512, MSG_NOSIGNAL);
-		send(SlaveSocket, buffer, 512, MSG_NOSIGNAL);
-
-		shutdown(SlaveSocket, SHUT_RDWR);
-		close(SlaveSocket);
+		if (0 == recv(SlaveSocket, buffer, 512, MSG_NOSIGNAL)) break;
+		if (-1 == send(SlaveSocket, buffer, 512, MSG_NOSIGNAL)) break;
 	}	
-
+	shutdown(SlaveSocket, SHUT_RDWR);
+	close(SlaveSocket);
+	
 	return 0;
 }
 

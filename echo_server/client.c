@@ -14,9 +14,8 @@ int main() {
 	SockAddr.sin_port = htons(1234);
 	SockAddr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
 
+	connect(SlaveSocket, (struct sockaddr*)(&SockAddr), sizeof(struct sockaddr_in));
 	while (1) {	
-		
-		connect(SlaveSocket, (struct sockaddr*)(&SockAddr), sizeof(struct sockaddr_in));
 		char buffer[512], answer[512];
 		scanf("%s", buffer);
 
@@ -24,10 +23,9 @@ int main() {
 		recv(SlaveSocket, answer, 512, MSG_NOSIGNAL);
 
 		printf("%s\n", answer);
-		shutdown(SlaveSocket, SHUT_RDWR);
-		close(SlaveSocket);
-		
 	}
+	shutdown(SlaveSocket, SHUT_RDWR);
+	close(SlaveSocket);
 	
 }
 
