@@ -21,14 +21,18 @@ int main() {
 
 	struct sockaddr_in SockAddrClient;
 	socklen_t addrlen = sizeof(struct sockaddr_in);
-	int SlaveSocket = accept(MainSocket, (struct sockaddr*)(&SockAddrClient), &addrlen);
+	int SlaveSocket;
 
-	while (1) {
+	while (SlaveSocket = accept(MainSocket, (struct sockaddr*)(&SockAddrClient), &addrlen)) {
+
 		printf("new_ip=%u\n", SockAddrClient.sin_addr.s_addr);
-		char buffer[512];
 
-		if (0 == recv(SlaveSocket, buffer, 512, MSG_NOSIGNAL)) break;
-		if (-1 == send(SlaveSocket, buffer, 512, MSG_NOSIGNAL)) break;
+		while (1) {
+			char buffer[512];
+
+			if (0 == recv(SlaveSocket, buffer, 512, MSG_NOSIGNAL)) break;
+			if (-1 == send(SlaveSocket, buffer, 512, MSG_NOSIGNAL)) break;
+		}
 	}	
 	shutdown(SlaveSocket, SHUT_RDWR);
 	close(SlaveSocket);
