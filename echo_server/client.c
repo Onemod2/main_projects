@@ -11,23 +11,23 @@ int main() {
 
 	struct sockaddr_in SockAddr;
 	SockAddr.sin_family = AF_INET;
-	SockAddr.sin_port = 1234;
-	SockAddr.sin_addr.s_addr = htons(INADDR_ANY);
+	SockAddr.sin_port = htons(1234);
+	SockAddr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
 
-	bind(SlaveSocket, (struct sockaddr*)(&SockAddr), sizeof(struct sockaddr_in));
-	
-	char buffer[255];
- 	scanf("%s", buffer);
-	buffer[254] = '\0';
+	while (1) {	
+		
+		connect(SlaveSocket, (struct sockaddr*)(&SockAddr), sizeof(struct sockaddr_in));
+		char buffer[512], answer[512];
+		scanf("%s", buffer);
 
-	send(SlaveSocket, buffer, 4, MSG_NOSIGNAL);
-	recv(SlaveSocket, buffer, 4, MSG_NOSIGNAL);
+		send(SlaveSocket, buffer, 512, MSG_NOSIGNAL);
+		recv(SlaveSocket, answer, 512, MSG_NOSIGNAL);
 
-	buffer[4] = '\0';
-	printf("%s\n", buffer);
-
-	shutdown(SlaveSocket, SHUT_RDWR);
-	close(SlaveSocket);
+		printf("%s\n", answer);
+		shutdown(SlaveSocket, SHUT_RDWR);
+		close(SlaveSocket);
+		
+	}
 	
 }
 
