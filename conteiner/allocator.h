@@ -62,7 +62,7 @@ void Allocator<T>::deallocate(void *ptr, std::size_t n) {
 template <typename T>
 template <typename... Args>
 void Allocator<T>::construct(void *ptr, Args&&... args) {
-	new (ptr) T(std::forward<Args&&>(args)...);
+	new (ptr) T(std::forward<Args>(args)...);
 }
 
 template <typename T>
