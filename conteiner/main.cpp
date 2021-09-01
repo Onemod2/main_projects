@@ -13,13 +13,8 @@ struct T {
 		cout << "copy\n";
 	}
 
-	T(T& obj) {
-		cout << "test copy\n";
-	}
-	
-	template <typename U>
-	T(U&& obj) {
-		obj.val = 4;
+	T(T&& obj) {
+		val = std::move(obj.val);	
 		cout << "move\n";
 	}
 	int val = 0;
@@ -31,8 +26,7 @@ int main() {
 	using AllocatorTraits = allocator_traits<Allocator<T>>;
 	T obj(4);
 	T* ptr = AllocatorTraits::allocate(Alloc, 1);
-	Alloc.construct(ptr, obj);	
-
-
+	AllocatorTraits::construct(Alloc, ptr, T(4));	
+	AllocatorTraits::destroy(Alloc, ptr);
 	return 0;
 }
