@@ -8,45 +8,129 @@
 
 template <typename T, typename Alloc = std::allocator<T>>
 class Conteiner {
-public:
-	Conteiner();
-	Conteiner(std::size_t size, T obj = T());
+	private:
+		template <typename ValueType>
+		class Iterator;
 
-	Conteiner(Conteiner&& cnt);
-	Conteiner(const Conteiner& cnt);
-		
-	template <typename U>
-	void push_back(U&& obj);
+	public:
+		using iterator = Iterator<T>;
+		using const_iterator = Iterator<const T>;
 
-	template <typename... Args>
-	void emplace_back(Args&&... args);
+		Conteiner();
+		Conteiner(std::size_t size, T obj = T());
 
-	void reserve(std::size_t size);
+		Conteiner(Conteiner&& cnt);
+		Conteiner(const Conteiner& cnt);
+			
+		template <typename U>
+		void push_back(U&& obj);
 
-	size_t size() const noexcept {
-		return sz;
-	}
+		template <typename... Args>
+		void emplace_back(Args&&... args);
 
-	T& operator[](size_t i) {
-		return data[i];
-	}
+		void reserve(std::size_t size);
 
-	T& at(size_t i) {
-		if (i >= sz) {
-			throw std::out_of_range();
+		size_t size() const noexcept {
+			return sz;
 		}
-		return data[i];
-	}
 
-private:
-	T* data = nullptr;
-	std::size_t sz = 0;
-	std::size_t capa = 0;
+		T& operator[](size_t i) {
+			return data[i];
+		}
 
-	Alloc alloc;
+		T& at(size_t i) {
+			if (i >= sz) {
+				throw std::out_of_range();
+			}
+			return data[i];
+		}
 
-	using AllocTraits = std::allocator_traits<Alloc>;
+		iterator begin() {
+			return iterator(data);
+		}
+		
+		iterator end() {
+			return iterator(data + sz);
+		}
+
+		const_iterator cbegin() const {
+			return const_iterator(data);
+		}
+		
+		const_iterator cend() const {
+			return const_iterator(data + sz);
+		}
+	
+	private:
+		template <typename ValueType>
+		class Iterator 
+		:	public std::iterator<std::random_access_iterator_tag, ValueType> {
+		
+			public:
+				Iterator() {};	
+				Iterator(ValueType* ptr) : ptr(ptr) {}
+				Iterator(const Iterator& it) : ptr(it.ptr) {}
+
+				ValueType& operator*() {
+					return *ptr;	
+				}
+				
+				Iterator operator++(int) {
+					Iterator tmp = *this;
+					ptr++;
+					return tmp;	
+				}
+
+				Iterator& operator++() {
+					ptr++;
+					return *this;	
+				}
+
+				Iterator operator--(int) {
+					Iterator tmp = *this;
+					ptr--;
+					return tmp;	
+				}
+
+				Iterator& operator--() {
+					ptr--;
+					return *this;	
+				}
+
+				T& operator->() {
+					return *ptr;
+				}
+
+				Iterator operator+(int i) const {
+					return Iterator(ptr + i);
+				}
+
+				Iterator operator-(int i) const {
+					return Iterator(ptr - i);
+				}
+
+				bool operator==(const Iterator& it) const {
+					return this->ptr == it.ptr;	
+				}
+
+				bool operator!=(const Iterator& it) const {
+					return !(*this == it);	
+				}	
+
+			private:
+				ValueType* ptr = nullptr;
+		};
+
+
+		T* data = nullptr;
+		std::size_t sz = 0;
+		std::size_t capa = 0;
+
+		Alloc alloc;
+
+		using AllocTraits = std::allocator_traits<Alloc>;
 };
+
 
 template <typename T, typename Alloc>
 Conteiner<T, Alloc>::Conteiner() : sz(0u), capa(0u), data(nullptr) {}
@@ -86,7 +170,8 @@ void Conteiner<T, Alloc>::reserve(size_t capa) {
 
 	for (size_t i = 0; i < this->sz; ++i) {
 		try {
-			AllocTraits::construct(alloc, new_arr + i, std::move_if_noexcept(data[i]));	
+			AllocTraits::construct(
+				alloc, new_arr + i, std::move_if_noexcept(data[i]));	
 		}
 		catch (std::exception& e) {
 			for (size_t j = 0; j < i; ++j) {
@@ -123,16 +208,9 @@ void Conteiner<T, Alloc>::emplace_back(Args&&... args) {
 	if (sz == capa) {
 		reserve( std::max(std::size_t(1), 2 * sz) );
 	}
-	AllocTraits::construct(alloc, data + sz, T(std::forward<Args>(args)...));
+	AllocTraits::construct(
+			alloc, data + sz, T(std::forward<Args>(args)...));
+	
 	sz++;	
 }
 
-
-
-
-
-
-
-
-
- 

@@ -1,9 +1,10 @@
 #include <iostream>
 #include <vector>
-
+#include <ostream>
 #include "conteiner.h"
 
 using namespace std;
+
 
 struct T {
 	T() : val(0) { cout << "create\n"; }
@@ -13,6 +14,12 @@ struct T {
 	
 	int val;
 };
+
+ostream& operator<<(ostream& os, const T& obj) {
+	os << obj.val;
+	return os;
+}
+	
 
 int main() {
 	Conteiner<T> cnt;
@@ -26,6 +33,13 @@ int main() {
 	for (size_t i = 0; i < cnt.size(); ++i) {
 		cout << cnt[i].val << endl; 
 	}
+
+	Conteiner<T>::const_iterator it = cnt.cbegin();
+
+	for (; it != cnt.cend(); ++it) {
+		cout << *it << ' ';
+	}
+	cout << endl;
 	
 	return 0;
 }
