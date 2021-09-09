@@ -56,7 +56,8 @@ int main(int argc, char **argv) {
 			if (FD_ISSET(current_fd, &Set)) {
 				static char buffer[1024];
 
-				int current_size = recv(current_fd, buffer, 1024, MSG_NOSIGNAL);
+				int current_size = recv(current_fd, buffer,
+					       	1024, MSG_NOSIGNAL);
 
 				if (current_size == 0 && (errno != EAGAIN)) {
 					shutdown(current_fd, SHUT_RDWR);
@@ -64,7 +65,8 @@ int main(int argc, char **argv) {
 					SlaveSockets.erase(current_fd);
 				}
 				else if (current_size > 0) {
-					send(current_fd, buffer, 1024, MSG_NOSIGNAL);
+					send(current_fd, buffer, 
+							current_size, MSG_NOSIGNAL);
 				}
 			}
 		}
