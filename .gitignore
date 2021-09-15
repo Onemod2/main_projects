@@ -1,3 +1,8 @@
 test
+
 .vscode
 .conf
+
+# execution files
+/c_lib/mmap_with_semaphore/creator
+/c_lib/mmap_with_semaphore/writer
