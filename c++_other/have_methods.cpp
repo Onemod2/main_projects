@@ -1,4 +1,4 @@
-nclude <vector>
+#include <vector>
 
 template <typename T>
 struct hasSizeMethod {
@@ -15,7 +15,6 @@ struct hasSizeMethod {
 
 template <typename T>
 bool has_size_method_v = hasSizeMethod<T>::value;
-
 
 template <typename T, typename... Args>
 auto hasFooMethod(T) -> 

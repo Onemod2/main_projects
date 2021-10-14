@@ -7,7 +7,6 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <netinet/in.h>
-#include <unistd.h>
 #include <fcntl.h>
 #include <sys/epoll.h>
 #include <arpa/inet.h>
@@ -34,14 +33,18 @@ struct User {
     struct sockaddr_in sock_addr;
     int fd;
     User(int fd) : fd(fd) {}
-    User(sockaddr_in sock_addr, int fd) : sock_addr(sock_addr), fd(fd) {}
+    User(sockaddr_in sock_addr, int fd) : 
+			sock_addr(sock_addr), fd(fd) {}
 };
 
 using cmp = decltype([](User f, User s) {
-return f.fd < s.fd;
+	return f.fd < s.fd;
 });
 
-void notify_all(std::set<User, cmp>& users, int SlaveSocket, int MasterSocket, bool is_connect) {
+void notify_all(std::set<User, cmp>& users, 
+	int SlaveSocket, int MasterSocket, bool is_connect)
+{
+		
     std::string s = "";
     if (is_connect) {
         s += "Connected ";
@@ -53,16 +56,18 @@ void notify_all(std::set<User, cmp>& users, int SlaveSocket, int MasterSocket, b
 
     char IPv4Addr[32];
     std::memset(&IPv4Addr, 0, 32);
-    inet_ntop(slave_el->sock_addr.sin_family, &slave_el->sock_addr.sin_addr, IPv4Addr,
-              sizeof(IPv4Addr));
+    inet_ntop(slave_el->sock_addr.sin_family, 
+			&slave_el->sock_addr.sin_addr, IPv4Addr, sizeof(IPv4Addr));
 
     s += std::string(IPv4Addr) + "\n";
 
     for (const User& el : users) {
         if (el.fd != SlaveSocket) {
-            send(SlaveSocket, s.c_str(), s.size(), MSG_NOSIGNAL);
+            send(el.fd, s.c_str(), s.size(), MSG_NOSIGNAL);
         }
     }
+
+		std::cout << s << std::endl;
 }
 
 int main(int argc, char **argv) {
@@ -95,7 +100,8 @@ int main(int argc, char **argv) {
             if (Events[i].data.fd == MasterSocket) {
                 struct sockaddr_in SockAddr;
                 socklen_t size = sizeof(sockaddr_in);
-                int SlaveSocket = accept(MasterSocket, (sockaddr*)&SockAddr, &size);
+                int SlaveSocket = accept(MasterSocket, 
+									(sockaddr*)&SockAddr, &size);
 
                 users.insert({SockAddr, SlaveSocket});
                 notify_all(users, SlaveSocket, MasterSocket, true);
@@ -106,21 +112,28 @@ int main(int argc, char **argv) {
                 Event.data.fd = SlaveSocket;
                 Event.events = EPOLLIN;
 
-                 epoll_ctl(Epoll, EPOLL_CTL_ADD, SlaveSocket, &Event);
+                epoll_ctl(Epoll, EPOLL_CTL_ADD, SlaveSocket, &Event);
             }
             else {
-                static char Buffer[1024];
-                int recive_size = recv(Events[i].data.fd, Buffer, 1024, MSG_NOSIGNAL);
-                if (recive_size == 0 && errno != EAGAIN) {
-                    notify_all(users, Events[i].data.fd, MasterSocket, false);
-                    users.erase(User(Events[i].data.fd));
+                static char Buffer[512];
+             		int recive_size; 
 
-                    shutdown(Events[i].data.fd, SHUT_RDWR);
-                    close(Events[i].data.fd);
-                }
-                else if (recive_size > 0) {
-                    send(Events[i].data.fd, Buffer, recive_size, MSG_NOSIGNAL);
-                }
+								while ((recive_size = recv(Events[i].data.fd, Buffer,
+									 512, MSG_NOSIGNAL)) > 0)
+					 			{ 
+										send(Events[i].data.fd, Buffer, 
+										recive_size, MSG_NOSIGNAL);
+								}
+
+								if (recive_size == 0 && errno != EAGAIN) {
+										notify_all(users, Events[i].data.fd, 
+											MasterSocket, false);
+										
+										users.erase(User(Events[i].data.fd));
+
+										shutdown(Events[i].data.fd, SHUT_RDWR);
+										close(Events[i].data.fd);
+								}
             }
         }
 	} 
