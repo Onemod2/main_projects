@@ -3,20 +3,26 @@
 #include <ostream>
 #include "conteiner.h"
 
-using namespace std;
-
+using std::cout;
+using std::endl;
+using std::ostream;
 
 struct T {
-	T() : val(0) { cout << "create\n"; }
-	T(int v) : val(v) { cout << "create from int\n"; }
-	T(const T& obj) { val = obj.val; cout << "copy\n"; }
-	T(T&& obj) noexcept { val = obj.val; obj.val = 0; cout << "move\n"; }
-	
-	int val;
+	T() : value(0) { cout << "create\n"; }
+	T(int v) : value(v) { cout << "create from int\n"; }
+	T(const T& obj) { value = obj.value; cout << "copy\n"; }
+	T(T&& obj) noexcept { value = obj.value; obj.value = 0; cout << "move\n"; }
+
+	int get_value() const noexcept { return value; }
+
+private:	
+	int value;
+
+	friend ostream& operator<<(ostream&, const T&);
 };
 
 ostream& operator<<(ostream& os, const T& obj) {
-	os << obj.val;
+	os << obj.value;
 	return os;
 }
 	
@@ -30,9 +36,10 @@ int main() {
 
 	cnt.push_back(T(0));
 
-	for (size_t i = 0; i < cnt.size(); ++i) {
-		cout << cnt[i].val << endl; 
+	for (auto&& element : cnt) {
+		cout << element.get_value() << ' '; 
 	}
+	cout << endl;
 
 	Conteiner<T>::const_iterator it = cnt.cbegin();
 

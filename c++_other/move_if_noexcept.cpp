@@ -44,8 +44,8 @@ void my_type_is(T&&);
 int main() {
     Test obj;
 
-    my_type_is(my_move_if_noexcept(obj) );
-    my_type_is( obj );
+    my_type_is(my_move_if_noexcept(obj));
+    my_type_is(obj);
 
     return 0;
 }
