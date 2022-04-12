@@ -7,99 +7,97 @@
 #include <chrono>
 #include <condition_variable>
 
-// Unbounded no block Many Producer Many Concumer Queue
-
 using namespace std::chrono_literals;
 
+// Unbounded no block Many Producer Many Concumer Queue
 template <typename T>
 class UnboundedNoBlockMPMCQueue {
-    public:
-        T take() {
-            std::unique_lock<std::mutex> ul(m_);
-            while (subjects_.empty()) {
-                not_empty_.wait(ul);
-            }
-            return take_last();
-        }
+public:
+  T take() {
+    std::unique_lock<std::mutex> ul(m_);
+    while (subjects_.empty()) {
+        not_empty_.wait(ul);
+    }
+    return take_last();
+  }
 
-        T take_last() {
-            auto last_subject = std::move(subjects_.back());
-            subjects_.pop_back();
-            
-            return last_subject;
-        }
+  T take_last() {
+    auto last_subject = std::move(subjects_.back());
+    subjects_.pop_back();
+    
+    return last_subject;
+  }
 
-        void put(T&& sub) {
-            std::lock_guard<std::mutex> ul(m_);
-            subjects_.push_front(std::move(sub));
-            not_empty_.notify_one();
-        }
+  void put(T&& sub) {
+    std::lock_guard<std::mutex> ul(m_);
+    subjects_.push_front(std::move(sub));
+    not_empty_.notify_one();
+  }
 
-    private:
-        std::mutex m_;
-        std::deque<T> subjects_;
-        std::condition_variable not_empty_;
+private:
+  std::mutex m_;
+  std::deque<T> subjects_;
+  std::condition_variable not_empty_;
 };
 
 class StaticThreadPull {
-    private:
-        using SubjectType = std::function<void()>;
-    
-    public:
-        StaticThreadPull(std::size_t n) {
-            for (std::size_t i = 0; i < n; ++i) {
-                workers_.emplace_back([this, i]() {
-                    performSubject(i);
-                });
-            }
-        }
+private:
+  using SubjectType = std::function<void()>;
 
-        void Subject(SubjectType&& sub) {
-            subjects_queue_.put(std::move(sub));
-        }
+public:
+  StaticThreadPull(std::size_t n) {
+    for (std::size_t i = 0; i < n; ++i) {
+      workers_.emplace_back([this, i]() {
+        performSubject(i);
+      });
+    }
+  }
 
-        void Join() {
-            for (auto& worker : workers_) {
-                subjects_queue_.put({});
-            }
-            for (auto& worker : workers_) {
-                worker.join();
-            }
-        }
+  void Subject(SubjectType&& sub) {
+    subjects_queue_.put(std::move(sub));
+  }
 
-    private:
-        void performSubject(std::size_t i) {
-           while (true) {
-                auto subject = subjects_queue_.take();
-                if (!subject) {
-                    break;
-                }
-                subject();
-           }
-        }
+  void Join() {
+    for (auto& worker : workers_) {
+        subjects_queue_.put({});
+    }
+    for (auto& worker : workers_) {
+        worker.join();
+    }
+  }
 
-        UnboundedNoBlockMPMCQueue<SubjectType> subjects_queue_;
-        std::vector<std::thread> workers_;
+private:
+  void performSubject(std::size_t i) {
+    while (true) {
+      auto subject = subjects_queue_.take();
+      if (!subject) {
+        break;
+      }
+      subject();
+    }
+  }
+
+  UnboundedNoBlockMPMCQueue<SubjectType> subjects_queue_;
+  std::vector<std::thread> workers_;
 };
 
 int main() {
-    StaticThreadPull thread_pull(4);
-    std::mutex m;
-    int val = 0; 
+  StaticThreadPull thread_pull(4);
+  std::mutex m;
+  int val = 0; 
 
-    for (std::size_t i = 0; i < 1'000'000; ++i) {
-        thread_pull.Subject([&]() {
-            std::lock_guard<std::mutex> m_(m);
-            val++; 
-        });
-    }
+  for (std::size_t i = 0; i < 1'000'000; ++i) {
+    thread_pull.Subject([&]() {
+      std::lock_guard<std::mutex> m_(m);
+      val++; 
+    });
+  }
 
-    thread_pull.Join();
+  thread_pull.Join();
+  std::cout << val << std::endl;
 
-    std::cout << val << std::endl;
-
-		// end of program    
-    return 0;
+  // end of program    
+  return 0;
 }
 
 
