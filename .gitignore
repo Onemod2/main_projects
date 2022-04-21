@@ -3,3 +3,5 @@ __pycache__
 logs.txt
 config.ini
 *.out
+*.exe
+*.obj
