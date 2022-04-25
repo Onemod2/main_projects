@@ -3,7 +3,7 @@
 #include <memory>
 #include <exception>
 
-// Main class of conteiner that contein any type of data
+// Main class of conteiner that contain any type of data
 //
 
 
