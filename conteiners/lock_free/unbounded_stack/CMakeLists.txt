@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.9)
 
-add_compile_options(-fsanitize=address)
+# add_compile_options(-fsanitize=address)
 # add_link_options(-fsanitize=address)
 
 project(unbounded_lock_free_stack)
