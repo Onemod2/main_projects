@@ -10,9 +10,6 @@
  * wait on pop method.
  **/
 
-using std::cout;
-using std::endl;
-using std::size_t;
 
 template <typename Key, typename Value, typename Hash=std::hash<Key> >
 class bounded_synch_buffer {

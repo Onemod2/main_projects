@@ -1,5 +1,6 @@
 #include "container_producer_consumer_test.h"
 #include "unbounded_stack.h"
+#include <exception>
 #include <iostream>
 
 using std::cin;
@@ -39,7 +40,14 @@ void unbounded_stack_load_test() {
 }
 
 int main() {
-  unbounded_stack_load_test<int>();
+  try {
+    unbounded_stack_load_test<int>();
+  } catch (const std::exception &e) {
+    std::cout << "Exc" << e.what() << std::endl;
+  }
+  catch(...) {
+    std::cout << "Another" << std::endl;
+  }
 
   return 0;
 }

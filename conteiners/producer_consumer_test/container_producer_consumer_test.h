@@ -13,12 +13,24 @@ static constexpr size_t PRODUCER_NUM = 1'000u;
 static constexpr size_t CONSUMER_NUM = 1'000u;
 static constexpr size_t BUNCH_NUM = 100u;
 
+// is_dereferencing traits
+namespace traits {
+  template <typename ...>
+  char deref(...);
+
+  template <typename T>
+  auto deref(T) -> decltype(*std::declval<T>(), 4);
+
+  template <typename T>
+  constexpr bool is_deref_v = std::is_same_v<decltype(deref<T>(std::declval<T>())), int>;
+};
+
 template<template<typename> typename _Container,
          typename _Type, typename _MethodPtr>
 void produce_tasks(_Container<_Type> &container, _MethodPtr method_push,
                    size_t task_number) {
   for (size_t i = 0; i < task_number; ++i) {
-    (container.*method_push)(static_cast<_Type>(i));
+    (container.*method_push)(static_cast<_Type>(i + 1));
   }
 }
 
@@ -30,7 +42,13 @@ void consume_tasks(_Container<_Type> &container, _MethodPtr method_pop,
     if (auto it = (container.*method_pop)(); !it) {
       std::cout << "null" << std::endl;
     } else {
-      std::cout << *it << std::endl;
+      // type have a dereferencing opportunity
+      if constexpr (traits::is_deref_v<decltype(it)>)
+      {
+        std::cout << *it << std::endl;
+      } else {
+        std::cout << it << std::endl;
+      }
     }
   }
 }
