@@ -44,8 +44,7 @@ int main() {
     unbounded_stack_load_test<int>();
   } catch (const std::exception &e) {
     std::cout << "Exc" << e.what() << std::endl;
-  }
-  catch(...) {
+  } catch (...) {
     std::cout << "Another" << std::endl;
   }
 

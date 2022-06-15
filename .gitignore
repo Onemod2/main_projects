@@ -5,3 +5,5 @@ config.ini
 *.out
 *.exe
 *.obj
+**/cmake*
+.idea*
